@@ -5,7 +5,3 @@
         <p>TLU'S MUSIC GARDEN</p>
     </div>
 </footer>
-
-</body>
-
-</html>

@@ -454,6 +454,7 @@
 			</div>
 		</div>
 	</div>
+	<?php include 'footer.php' ?>
 </body>
 
 </html>
@@ -477,4 +478,3 @@
 		});
 	});
 </script>
-<?php include 'footer.php' ?>
