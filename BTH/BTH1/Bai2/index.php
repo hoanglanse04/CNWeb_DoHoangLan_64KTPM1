@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 
 <html lang="en" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none">
@@ -29,88 +31,92 @@
 	<?php
 	include 'header.php';
 	?>
+	<div class="container mt-5">
+		
+	</div>
+
 
 	<div class="container mt-5">
-		<h1 class="text-center">Bài tập trắc nghiệm</h1>
 		<?php
-		$filename = "./Quiz.txt";
-		$questions = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+// Kết nối đến cơ sở dữ liệu MySQL
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "bth1";
 
-		$current_question = [];
-		$questions_data = [];
-		foreach ($questions as $line) {
-			if (strpos($line, "Câu") === 0) {
-				if (!empty($current_question)) {
-					// Lưu câu hỏi cũ
-					$questions_data[] = $current_question;
-				}
-				$current_question = [$line];
-			} elseif (strpos($line, "Đáp án:") !== false) {
-				$current_question[] = $line;
-			} else {
-				$current_question[] = $line;
-			}
-		}
-		if (!empty($current_question)) {
-			$questions_data[] = $current_question;
-		}
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-			// Tính điểm khi nộp bài
-			$answers = [];
-			foreach ($questions as $line) {
-				if (strpos($line, "Đáp án:") !== false) {
-					$answers[] = trim(substr($line, strpos($line, ":") + 1));
-				}
-			}
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
-			$score = 0;
-			foreach ($_POST as $key => $userAnswer) {
-				$questionNumber = (int)filter_var($key, FILTER_SANITIZE_NUMBER_INT);
-				if (isset($answers[$questionNumber - 1]) && $answers[$questionNumber - 1] === $userAnswer) {
-					$score++;
-				}
-			}
+echo "<div class='container mt-5'>";
+echo "<h1 class='text-center'>Bài kiểm tra trắc nghiệm</h1>";
 
-			echo "<div class='alert alert-success text-center'>";
-			echo "Bạn trả lời đúng <strong>$score</strong>/" . count($answers) . " câu.";
-			echo "</div>";
-			echo '<div class="text-end">';
-			echo "<a href='index.php' class='btn btn-primary'>Làm lại</a>";
-			echo '</div>';
-			
-			
-		} else {
-			// Hiển thị câu hỏi
-			echo "<div class='container mt-5'>";
-			echo "<form method='POST' action=''>";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $score = 0;
 
-			foreach ($questions_data as $index => $question) {
-				echo "<div class='card mb-4'>";
-				echo "<div class='card-header'><strong>{$question[0]}</strong></div>";
-				echo "<div class='card-body'>";
-				for ($i = 1; $i <= 4; $i++) {
-					$answer = substr($question[$i], 0, 1); // A, B, C, D
-					echo "<div class='form-check'>";
-					echo "<input class='form-check-input' type='radio' name='question" . ($index + 1) . "' value='{$answer}' id='question" . ($index + 1) . "{$answer}'>";
-					echo "<label class='form-check-label' for='question" . ($index + 1) . "{$answer}'>{$question[$i]}</label>";
-					echo "</div>";
-				}
-				echo "</div>";
-				echo "</div>";
-			}
+    $result = $conn->query("SELECT * FROM questions");
 
-			echo '<div class="text-end"><button type="submit" class="btn btn-primary">Nộp bài</button></div>';
-			echo "</form>";
-			echo "</div>";
-		}
-		?>
+    while ($row = $result->fetch_assoc()) {
+        $question_id = $row['id'];
+
+        $answer_result = $conn->query("SELECT * FROM answers WHERE question_id = $question_id AND is_correct = TRUE");
+        $correct_answer = $answer_result->fetch_assoc();
+
+        if (isset($_POST["question" . $question_id]) && $_POST["question" . $question_id] === $correct_answer['answer_text']) {
+            $score++;
+        }
+    }
+
+    echo "<div class='alert fs-5 alert-success text-center'>";
+    echo "Bạn trả lời đúng <strong>$score</strong> câu.";
+    echo "</div>";
+    echo '<div class="text-end">';
+    echo "<a href='index.php' class='btn btn-primary'>Làm lại</a>";
+    echo '</div>';
+} else {
+    echo "<form method='POST' action=''>";
+
+    $questions = $conn->query("SELECT * FROM questions");
+
+    while ($question = $questions->fetch_assoc()) {
+        $question_id = $question['id'];
+        $question_text = htmlspecialchars($question['question_text'], ENT_QUOTES, 'UTF-8');
+
+        echo "<div class='card mb-4'>";
+        echo "<div class='card-header'><strong>$question_text</strong></div>";
+        echo "<div class='card-body'>";
+
+        $answers = $conn->query("SELECT * FROM answers WHERE question_id = $question_id");
+
+        while ($answer = $answers->fetch_assoc()) {
+            $answer_text = htmlspecialchars($answer['answer_text'], ENT_QUOTES, 'UTF-8');
+            $answer_value = htmlspecialchars(substr($answer_text, 0, 1), ENT_QUOTES, 'UTF-8');
+
+            echo "<div class='form-check'>";
+            echo "<input class='form-check-input' type='radio' name='question" . $question_id . "' value='" . $answer_text . "' id='question" . $question_id . $answer_value . "'>";
+            echo "<label class='form-check-label' for='question" . $question_id . $answer_value . "'>" . $answer_text . "</label>";
+            echo "</div>";
+        }
+
+        echo "</div>";
+        echo "</div>";
+    }
+
+    echo '<div class="text-end"><button type="submit" class="btn btn-primary">Nộp bài</button></div>';
+    echo "</form>";
+}
+
+$conn->close();
+?>
+
 
 
 </body>
 <?php
-	include 'footer.php';
-	?>
+include 'footer.php';
+?>
 <script src="./js/jquery-3.7.1.min.js"></script>
 <script src="./js/jquery.mask.js"></script>
 <script src="./js/bootstrap.bundle.min.js"></script>

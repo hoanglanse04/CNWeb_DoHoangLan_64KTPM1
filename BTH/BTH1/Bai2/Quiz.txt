@@ -59,7 +59,7 @@ A. C++
 B. Python
 C. Java
 D. Kotlin
-Đáp án: C, D
+Đáp án: C
 
 Câu 10. Adapter trong Android được sử dụng để làm gì?
 A. Kết nối dữ liệu với ListView hoặc RecyclerView.
