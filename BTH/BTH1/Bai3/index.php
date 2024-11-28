@@ -25,37 +25,43 @@
 </head>
 
 <body>
-
+	<?php
+	require 'dbconnect.php';
+	?>
 	<?php
 	include 'header.php';
 	?>
 
 	<div class="container">
-		<h1 class="text-center">Thông Tin Sinh Viên</h1>
+		<h1 class="text-center fw-bold my-2">Thông Tin Sinh Viên</h1>
+		<div class="text-end">
+			<form method="POST" action="">
+				<button type="submit" name="save" class="btn btn-primary my-2">Lưu vào CSDL</button>
+			</form>
 
+		</div>
 		<?php
 
 		$filename = "./sinhvien.csv";
-
+		$status = true;  
 
 		$sinhvien = [];
-//Lưu ý khi đọc dữ liệu,dữ liệu sẽ có  BOM (Byte Order Mark) vậy phải bỏ kí tự đó để username không bị sai
-		// Kiểm tra nếu tệp CSV có thể mở được
+
 		if (file_exists($filename) && ($handle = fopen($filename, "r")) !== FALSE) {
-			// Đọc một số byte đầu tiên để kiểm tra BOM (nếu có)
+
 			$bom = fread($handle, 3);
 			if ($bom == "\xEF\xBB\xBF") {
 				// Nếu có BOM, bỏ qua 3 byte BOM
 				$headers = fgetcsv($handle, 1000, ",");
 			} else {
-				// Nếu không có BOM, quay lại và đọc dòng tiêu đề bình thường
-				rewind($handle); // Đưa con trỏ về đầu tệp
+
+				rewind($handle);
 				$headers = fgetcsv($handle, 1000, ",");
 			}
 
 			// Kiểm tra nếu có dữ liệu tiêu đề
 			if ($headers !== FALSE) {
-				// Đọc từng dòng dữ liệu và thêm vào mảng
+
 				while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
 
 					// Nếu dữ liệu không đầy đủ, bỏ qua dòng đó
@@ -65,10 +71,43 @@
 				}
 			}
 
-			fclose($handle); 
+			if (isset($_POST['save'])) {
+				// Lặp qua mảng sinh viên và chèn từng dòng vào cơ sở dữ liệu
+				foreach ($sinhvien as $sv) {
+
+					$username = $sv['username'];
+					$password = $sv['password'];
+					$lastname = $sv['lastname'];
+					$firstname = $sv['firstname'];
+					$city = $sv['city'];
+					$email = $sv['email'];
+					$course1 = $sv['course1'];
+
+					// Thực thi câu lệnh SQL để chèn dữ liệu vào bảng
+					$sql = "INSERT INTO sinhvien (username, password, lastname, firstname, city, email, course1) 
+                    VALUES ('$username', '$password', '$lastname', '$firstname', '$city', '$email', '$course1')";
+					
+				
+
+					if ($conn->query($sql) === TRUE) {
+						$status=true;
+					} else {
+						echo "Lỗi: " . $sql . "<br>" . $conn->error . "<br>";
+						$status=false;
+					}
+				}
+				if($status==true)
+				echo "<h6 class=\"text-center text-success fw-bold \">Dữ liệu đã được lưu thành công!</h6><br>";
+
+
+				
+			}
+
 		} else {
 			echo "<div class='alert alert-danger' role='alert'>Không thể mở tệp CSV hoặc tệp không tồn tại.</div>";
 		}
+
+
 
 		?>
 
