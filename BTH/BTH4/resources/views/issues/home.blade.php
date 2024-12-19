@@ -100,32 +100,17 @@ $(document).ready(function(){
                                 <a href="{{ route('edit', $issue->id) }}" class="btn btn-primary text-white">Sửa</a>
         
                                 <!-- Nút xóa kèm modal xác nhận -->
-                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $issue->id }}">
-                                    Xóa
-                                </button>
+																<button type="button" class="btn btn-danger btn-delete" 
+																data-id="{{ $issue->id }}" 
+																data-url="{{ route('destroy', $issue->id) }}" 
+																data-bs-toggle="modal" 
+																data-bs-target="#deleteModal">
+														Xóa
+												</button>
+												
         
                                 <!-- Modal xác nhận xóa -->
-                                <div class="modal fade" id="deleteModal{{ $issue->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $issue->id }}" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="deleteModalLabel{{ $issue->id }}">Xác nhận xóa</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                Bạn có chắc chắn muốn xóa đồ án này không?
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                                                <form action="{{ route('destroy', $issue->id) }}" method="POST" style="display:inline;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger">Xóa</button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+
 
                             </td>
                         </tr>
@@ -138,6 +123,28 @@ $(document).ready(function(){
 		</div>
 	</div>        
 </div>
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+			<div class="modal-content">
+					<div class="modal-header">
+							<h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+							Bạn có chắc chắn muốn xóa đồ án này không?
+					</div>
+					<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+							<form id="deleteForm" method="POST" style="display:inline;">
+									@csrf
+									@method('DELETE')
+									<button type="submit" class="btn btn-danger">Xóa</button>
+							</form>
+					</div>
+			</div>
+	</div>
+</div>
+
 </body>
 
 <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
@@ -170,4 +177,18 @@ $(document).ready(function(){
 <script src="{{ asset('js/uuid.js') }}"></script>
 <script src="{{ asset('js/JsBarcode.all.min.js') }}"></script>
 <script src="{{ asset('js/lodash.min.js') }}"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', function () {
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteForm = document.getElementById('deleteForm');
+
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function () {
+            const url = this.getAttribute('data-url');
+            deleteForm.setAttribute('action', url);
+        });
+    });
+});
+
+</script>
 </html>
